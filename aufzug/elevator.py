@@ -2,19 +2,26 @@ import board
 import time
 import sys
 import random
+import busio
 
-from motor import Motor
 from gyroscope import Gyroskop
 from pidcontroller import PIDController
 from motorcontroller import MotorController
+from motor import Motor
 from stopper import Stopper
 from greifer import Greifer
+from adafruit_pca9685 import PCA9685
+from adafruit_motor import motor
 
 class Elevator:
     def __init__(self):
-        self.motor1 = Motor(board.D17, board.D27, board.D22)
-        self.motor2 = Motor(board.D13, board.D19, board.D26)
-        self.motor3 = Motor(board.D16, board.D20, board.D21)
+        i2c = busio.I2C(board.SCL, board.SDA)
+        self.pca = PCA9685(i2c)
+        self.pca.frequency = 1200
+
+        self.motor1 = Motor( self.pca, 6, 7 )
+        self.motor2 = Motor( self.pca, 4, 5 )
+        self.motor3 = Motor( self.pca, 8, 9 )
         self.gyroscope = Gyroskop()
         self.gripper = Greifer()
         kp = 30

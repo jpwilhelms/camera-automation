@@ -1,52 +1,44 @@
 import board
-import digitalio
-import pwmio
-import time
+import busio
+from adafruit_motor import motor
+from adafruit_pca9685 import PCA9685
 
 class Motor:
-    def __init__(self, pwm_pin, dir_pin1, dir_pin2, frequency=1000):
-        self.enb = pwmio.PWMOut(pwm_pin, frequency=frequency, duty_cycle=0)
-        self.in1 = digitalio.DigitalInOut(dir_pin1)
-        self.in1.direction = digitalio.Direction.OUTPUT
-        self.in2 = digitalio.DigitalInOut(dir_pin2)
-        self.in2.direction = digitalio.Direction.OUTPUT
-        
-        # Initially set direction to forward
-        self.stop()
-
-    def stop(self):
-        self.in1.value = True
-        self.in2.value = True
-        self.set_speed( 100 )
-
-    def forward(self):
-        self.in1.value = True
-        self.in2.value = False
-
-    def backward(self):
-        self.in1.value = False
-        self.in2.value = True
+    def __init__(self, pca, forward_channel, backward_channel):
+        self.pca = pca
+        self.motor_control = motor.DCMotor(self.pca.channels[forward_channel], self.pca.channels[backward_channel])
+        self.motor_control.decay_mode = motor.SLOW_DECAY
+        self.speed = 0  
+        self.dir_forward = True
 
     def set_speed(self, speed):
-        if speed < 0:
-            speed = 0
-        if speed > 100:
-            speed = 100
-        self.enb.duty_cycle = int(speed * 65535) // 100  # Scale speed to PWM duty cycle range (0-65535)
+        """Setze die Geschwindigkeit des Motors zwischen 1 und 100."""
+        if not (0 <= speed <= 100):
+            raise ValueError("Speed muss zwischen 1 und 100 liegen.")
+        
+        self.speed = speed
+        self._set_throttle()
 
-# Beispiel-Nutzung:
-if __name__ == "__main__":
-    motor = Motor(board.D16, board.D20, board.D21)
+    def forward(self):
+        self.dir_forward = True
+        self._set_throttle()
 
-    while True:
-        motor.set_speed(60)  # Set speed to 60%
-        time.sleep(1)
-        motor.set_speed(40)  # Set speed to 40%
-        time.sleep(1)
-        motor.backward()
-        motor.set_speed(60)  # Set speed to 60%
-        time.sleep(1)
-        motor.set_speed(40)  # Set speed to 40%
-        time.sleep(1)
-        motor.forward()
+    def backward(self):
+        self.dir_forward = False
+        self._set_throttle()
+
+    def stop(self):
+        self.speed = 0
+        self._set_throttle()
+
+    def _set_throttle(self):
+        if self.speed == 0:
+            throttle = 0
+        else:
+            throttle = 0.3 + (self.speed - 1) / 99 * (0.6 - 0.3)
+
+        if not self.dir_forward:
+            throttle = -throttle
+
+        self.motor_control.throttle = throttle
 
