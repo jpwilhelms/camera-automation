@@ -6,11 +6,8 @@ from adafruit_motor import servo
 
 class Greifer:
     def __init__(self):
-        # I2C-Bus initialisieren
-        self.i2c = busio.I2C(board.SCL, board.SDA)
-        
-        # PCA9685-Objekt erstellen
-        self.pca = PCA9685(self.i2c)
+        i2c = busio.I2C(board.SCL, board.SDA)
+        self.pca = PCA9685(i2c, address=0x40)
         self.pca.frequency = 50
         self.maxAngle = 130
         self.minAngle = 50

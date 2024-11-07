@@ -9,6 +9,8 @@ class Motor:
         self.motor_control = motor.DCMotor(self.pca.channels[forward_channel], self.pca.channels[backward_channel])
         self.motor_control.decay_mode = motor.SLOW_DECAY
         self.speed = 0  
+        self.throttle_min = 0.1
+        self.throttle_max = 0.8  
         self.dir_forward = True
 
     def set_speed(self, speed):
@@ -31,13 +33,19 @@ class Motor:
         self.speed = 0
         self._set_throttle()
 
+    def release(self):
+        self.speed = None
+        self._set_throttle()
+
     def _set_throttle(self):
-        if self.speed == 0:
+        if self.speed == None:
+            throttle = None
+        elif self.speed == 0:
             throttle = 0
         else:
-            throttle = 0.3 + (self.speed - 1) / 99 * (0.6 - 0.3)
+            throttle = self.throttle_min + (self.speed - 1) / 99 * (self.throttle_max - self.throttle_min)
 
-        if not self.dir_forward:
+        if (not throttle == None) and not self.dir_forward:
             throttle = -throttle
 
         self.motor_control.throttle = throttle

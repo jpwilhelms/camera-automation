@@ -2,42 +2,37 @@ import board
 import time
 import sys
 import random
-import busio
 
 from gyroscope import Gyroskop
 from pidcontroller import PIDController
 from motorcontroller import MotorController
-from motor import Motor
 from stopper import Stopper
 from greifer import Greifer
-from adafruit_pca9685 import PCA9685
-from adafruit_motor import motor
 
 class Elevator:
     def __init__(self):
-        i2c = busio.I2C(board.SCL, board.SDA)
-        self.pca = PCA9685(i2c)
-        self.pca.frequency = 1200
-
-        self.motor1 = Motor( self.pca, 6, 7 )
-        self.motor2 = Motor( self.pca, 4, 5 )
-        self.motor3 = Motor( self.pca, 8, 9 )
         self.gyroscope = Gyroskop()
         self.gripper = Greifer()
-        kp = 30
-        ki = 1 
-        kd = 3 
+        kp = 10
+        ki = 2
+        kd = 1 
         self.flatMax = 0.25
         self.flatErrorMax = 1
-        self.shakeSeconds = 1.8
+        self.shakeSeconds = 0.8 
 
         self.pid_x = PIDController(K_p=kp, K_i=ki, K_d=kd)
         self.pid_y = PIDController(K_p=kp, K_i=ki, K_d=kd)
 
-        self.controller = MotorController(self.motor1, self.motor2, self.motor3, self.gyroscope, self.pid_x, self.pid_y)
+        self.controller = MotorController(self.gyroscope, self.pid_x, self.pid_y)
         self.stopperTop = Stopper(board.D5)
         self.stopperDown1 = Stopper(board.D6)
         self.stopperDown2 = Stopper(board.D10)
+
+    def stop(self):
+        self.controller.stop_motors()
+        time.sleep(0.5)
+        self.controller.release_motors()
+        print("stopped")
 
     def upGrip(self):
         if self.stopperTop.isTriggered():
@@ -128,7 +123,7 @@ class Elevator:
         while True:
             if not self._move_single(direction, stopperCheck):
                 break
-            time.sleep(0.1)
+#            time.sleep(0.001)
 
     def _move_single(self, direction, stopperCheck):
         if stopperCheck():
@@ -147,19 +142,24 @@ if __name__ == "__main__":
 
     if len(sys.argv) > 1:
         action = sys.argv[1]
-        if action == "upGrip":
-            elevator.upGrip()
-        elif action == "upRelease":
-            elevator.upRelease()
-        elif action == "up":
-            elevator.up()
-        elif action == "down":
-            elevator.down()
-            print( f"landed: {elevator.gyroscope.getLatestResult()}" )
-        elif action == "shake":
-            elevator.shake()
-        else:
-            raise ValueError(f"Invalid action: {action}")
+        try:
+            if action == "stop":
+                elevator.stop()
+            elif action == "upGrip":
+                elevator.upGrip()
+            elif action == "upRelease":
+                elevator.upRelease()
+            elif action == "up":
+                elevator.up()
+            elif action == "down":
+                elevator.down()
+                print( f"landed: {elevator.gyroscope.getLatestResult()}" )
+            elif action == "shake":
+                elevator.shake()
+            else:
+                raise ValueError(f"Invalid action: {action}")
+        except KeyboardInterrupt as e:
+            elevator.stop()
     else:
-        raise ValueError(f"Usage: {sys.argv[0]} <upGrip|upRelease|down>")
+        raise ValueError(f"Usage: {sys.argv[0]} <stop|upGrip|upRelease|down>")
 

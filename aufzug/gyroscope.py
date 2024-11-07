@@ -1,6 +1,7 @@
 import time
 import board
 import busio
+import statistics
 from adafruit_mpu6050 import MPU6050
 
 class Gyroskop:
@@ -9,9 +10,14 @@ class Gyroskop:
         self.mpu = MPU6050(i2c)
     
     def getXY(self):
-        acceleration = self.mpu.acceleration
-        self.latestResult = acceleration[0] + 0.3, acceleration[1] + 0.2
+        acceleration = self.getMedian( [self.mpu.acceleration for _ in range(3)] )
+        self.latestResult = acceleration[0] - 0.21, acceleration[1] + 0.10
         return self.latestResult
+
+    def printAll(self):
+        print( f"accel: {self.mpu.acceleration} m/s^2" )
+        print( f"gyro: {self.mpu.gyro} °/s" )
+        print( f"temp: {self.mpu.temperature} °C" )
 
     def isFlat(self,threshold):
         xy = self.getXY()
@@ -21,19 +27,16 @@ class Gyroskop:
     def getLatestResult(self):
         return self.latestResult
 
+    def getMedian(self, tupel_liste):
+        transponiert = zip(*tupel_liste)
+        median_tupel = tuple(statistics.median(werte) for werte in transponiert)
+        return median_tupel
+
 if __name__ == "__main__":
     gyroskop = Gyroskop()
     
     while True:
-        # Daten abrufen
-        x_accel, y_accel = gyroskop.getXY()
-        
-        # Daten ausgeben
-        print(f"X-Beschleunigung: {x_accel:.2f} m/s^2")
-        print(f"Y-Beschleunigung: {y_accel:.2f} m/s^2")
-        gyroskop.isFlat( 1.5 )
-        print("")
-        
-        # Eine Sekunde warten
-        time.sleep(1)
+        print( f"{gyroskop.getXY()}" )
+        #gyroskop.printAll()
+        #time.sleep(1)
 
