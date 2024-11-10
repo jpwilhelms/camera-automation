@@ -13,11 +13,11 @@ class Elevator:
     def __init__(self):
         self.gyroscope = Gyroskop()
         self.gripper = Greifer()
-        kp = 10
+        kp = 30
         ki = 2
         kd = 1 
         self.flatMax = 0.25
-        self.flatErrorMax = 1
+        self.flatErrorMax = 0.4
         self.shakeSeconds = 0.8 
 
         self.pid_x = PIDController(K_p=kp, K_i=ki, K_d=kd)
@@ -83,6 +83,7 @@ class Elevator:
                     break
 
             print( f"not landed: {self.gyroscope.getLatestResult()}" )
+            self._resetPids()
             start_time = time.time()
 
             while time.time() - start_time < self.shakeSeconds:
@@ -91,6 +92,10 @@ class Elevator:
 
             self.controller.stop_motors()
             time.sleep(random.uniform(0, 4))
+
+    def _resetPids(self):
+        self.pid_x.reset()
+        self.pid_y.reset()
 
     def _stopperDownOrUneven(self):
         return self.stopperDown() or not self.gyroscope.isFlat( self.flatErrorMax )

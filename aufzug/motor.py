@@ -4,14 +4,15 @@ from adafruit_motor import motor
 from adafruit_pca9685 import PCA9685
 
 class Motor:
-    def __init__(self, pca, forward_channel, backward_channel):
+    def __init__(self, pca, forward_channel, backward_channel, id):
         self.pca = pca
         self.motor_control = motor.DCMotor(self.pca.channels[forward_channel], self.pca.channels[backward_channel])
         self.motor_control.decay_mode = motor.SLOW_DECAY
         self.speed = 0  
         self.throttle_min = 0.1
-        self.throttle_max = 0.8  
+        self.throttle_max = 0.6  
         self.dir_forward = True
+        self.id = id
 
     def set_speed(self, speed):
         """Setze die Geschwindigkeit des Motors zwischen 1 und 100."""
@@ -48,5 +49,6 @@ class Motor:
         if (not throttle == None) and not self.dir_forward:
             throttle = -throttle
 
+        print( f"motor {self.id}: {throttle}" )
         self.motor_control.throttle = throttle
 

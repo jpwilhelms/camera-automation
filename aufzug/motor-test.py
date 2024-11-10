@@ -8,20 +8,18 @@ from motor import Motor
 i2c = busio.I2C(board.SCL, board.SDA)
 
 # PCA9685-Objekt erstellen
-pca = PCA9685(i2c)
+pca = PCA9685(i2c, address=0x41)
 pca.frequency = 1200
 
-motor1 = Motor(pca, 8, 9)
+motor1 = Motor(pca, 8, 9, "test")
 
 try:
-    for speed in range( 5, 101, 5 ):
-        print( f"speed: {speed}" )
-        motor1.set_speed( speed )
-        time.sleep(1)
+    motor1.backward()
+    motor1.set_speed( 60 )
+    time.sleep(2)
     motor1.stop()
 except KeyboardInterrupt:
     motor1.stop()
     pca.deinit()
 
-time.sleep(1)
 pca.deinit()

@@ -9,9 +9,9 @@ class MotorController:
         i2c = busio.I2C(board.SCL, board.SDA)
         self.pca = PCA9685(i2c, address=0x41)
         self.pca.frequency = 1500
-        self.motor1 = Motor( self.pca, 0, 1 )
-        self.motor2 = Motor( self.pca, 2, 3 )
-        self.motor3 = Motor( self.pca, 8, 9 )
+        self.motor1 = Motor( self.pca, 0, 1, "1" )
+        self.motor2 = Motor( self.pca, 2, 3, "2" )
+        self.motor3 = Motor( self.pca, 8, 9, "3" )
         self.gyroscope = gyroscope
         self.pid_x = pid_x
         self.pid_y = pid_y
@@ -20,11 +20,12 @@ class MotorController:
 
     def __adjust_motors(self, direction):
         x_angle, y_angle = self.gyroscope.getXY()
-        print( f"x: {x_angle}, y: {y_angle}" )
+        print( f"x-angle: {x_angle}, y-angle: {y_angle}, going {direction}" )
         
         # Berechne die Ausgangssignale der PID-Regler für x und y
         output_x = self.pid_x.compute(x_angle)
         output_y = self.pid_y.compute(y_angle)
+        print( f"pid_x: {output_x}, pid_y: {output_y}" )
         
         # Beispiel: Anpassung der Motorgeschwindigkeiten basierend auf den PID-Ausgangswerten
         if direction == "up":
@@ -38,6 +39,7 @@ class MotorController:
         else:
             raise ValueError( "direction has to be up or down" )
 
+        print( f"current speed: {speed1}, {speed2}, {speed3}" )
         speed1 = self.__adjust_speed( speed1 )
         speed2 = self.__adjust_speed( speed2 )
         speed3 = self.__adjust_speed( speed3 )
