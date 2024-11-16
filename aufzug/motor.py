@@ -10,7 +10,7 @@ class Motor:
         self.motor_control.decay_mode = motor.SLOW_DECAY
         self.speed = 0  
         self.throttle_min = 0.1
-        self.throttle_max = 0.6  
+        self.throttle_max = 0.8  
         self.dir_forward = True
         self.id = id
 
@@ -22,7 +22,7 @@ class Motor:
         self.speed = speed
         self._set_throttle()
 
-    def set_directional_speed(self, speed, min_abs_speed: int = 20):
+    def set_directional_speed(self, speed, min_abs_speed: int = 0):
         """Setze die Geschwindigkeit des Motors zwischen 1 und 100."""
         if not (-100 <= speed <= 100):
             raise ValueError("Speed muss zwischen -100 und 100 liegen.")
@@ -31,7 +31,7 @@ class Motor:
         abs_speed = abs(speed)
         
         if abs_speed < min_abs_speed:
-            self.stop()
+            self.release()
         else:
             self.speed = abs_speed
             self._set_throttle()

@@ -3,6 +3,7 @@ import board
 import busio
 
 from adafruit_pca9685 import PCA9685
+from stopper import Stopper
 from motor import Motor
 from gyroscope import Gyroscope
 from adafruit_motor import servo
@@ -28,6 +29,11 @@ class Hardware:
         self.servo_1 = servo.Servo(self.pca40.channels[1])
         self.servo_2 = servo.Servo(self.pca40.channels[2])
         self.servo_3 = servo.Servo(self.pca40.channels[3])
+
+        self.stopperDown1 = Stopper(board.D5)
+        self.stopperDown2 = Stopper(board.D6)
+        self.stopperTop = Stopper(board.D10)
+
 
     def cleanup(self):
         print( "cleaning up hardware..." )
