@@ -63,6 +63,5 @@ class Motor:
         if (not throttle == None) and not self.dir_forward:
             throttle = -throttle
 
-        print( f"motor {self.id}: {throttle}" )
         self.motor_control.throttle = throttle
 
