@@ -3,7 +3,7 @@ import time
 import sys
 import random
 
-from gyroscope import Gyroskop
+from gyroscope import Gyroscope
 from pidcontroller import PIDController
 from motorcontroller import MotorController
 from stopper import Stopper
@@ -11,7 +11,7 @@ from greifer import Greifer
 
 class Elevator:
     def __init__(self):
-        self.gyroscope = Gyroskop()
+        self.gyroscope = Gyroscope()
         self.gripper = Greifer()
         kp = 30
         ki = 2

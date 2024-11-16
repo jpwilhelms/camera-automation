@@ -22,6 +22,20 @@ class Motor:
         self.speed = speed
         self._set_throttle()
 
+    def set_directional_speed(self, speed, min_abs_speed: int = 20):
+        """Setze die Geschwindigkeit des Motors zwischen 1 und 100."""
+        if not (-100 <= speed <= 100):
+            raise ValueError("Speed muss zwischen -100 und 100 liegen.")
+
+        self.dir_forward = (speed >= 0)
+        abs_speed = abs(speed)
+        
+        if abs_speed < min_abs_speed:
+            self.stop()
+        else:
+            self.speed = abs_speed
+            self._set_throttle()
+
     def forward(self):
         self.dir_forward = True
         self._set_throttle()

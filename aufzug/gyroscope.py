@@ -4,7 +4,7 @@ import busio
 import statistics
 from adafruit_mpu6050 import MPU6050
 
-class Gyroskop:
+class Gyroscope:
     def __init__(self):
         i2c = busio.I2C(board.SCL, board.SDA)
         self.mpu = MPU6050(i2c)
@@ -33,7 +33,7 @@ class Gyroskop:
         return median_tupel
 
 if __name__ == "__main__":
-    gyroskop = Gyroskop()
+    gyroskop = Gyroscope()
     
     while True:
         print( f"{gyroskop.getXY()}" )

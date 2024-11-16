@@ -6,6 +6,10 @@ class PIDController:
         self.last_error = 0
         self.integral = 0
 
+    @classmethod
+    def create_default(cls):
+        return PIDController(50, 3, 1)
+
     def compute(self, error):
         self.integral += error
         derivative = error - self.last_error
