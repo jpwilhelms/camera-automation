@@ -13,9 +13,10 @@ class Elevator:
     def __init__(self, hw:Hardware):
         self.gyroscope_handler = hw.gyroscope_handler
         self.gripper = Greifer(hw)
-        self.flatMax = 0.25
-        self.flatErrorMax = 0.4
-        self.shakeSeconds = 0.8 
+        self.flatMax = 0.15
+        self.flatErrorMax = 0.5
+        self.shakeSeconds = 0.3 
+        self.wait_for_bottom_check = 0.3
 
         self.controller = MotorController(hw)
         self.stopperTop = hw.stopperTop
@@ -69,10 +70,9 @@ class Elevator:
 
         while True:
             self._move("down", self._stopperDownOrUneven)
-            #self._move("down", self.stopperDown)
             
             if self.stopperDown():
-                time.sleep( 0.5 )
+                time.sleep( self.wait_for_bottom_check )
                 if self.gyroscope_handler.is_flat( self.flatMax ):
                     break
 
@@ -100,6 +100,7 @@ class Elevator:
             print("shake is only allowed on bottom")
             return
 
+        print( "shaking" )
         while not self._landed():
             print( f"not landed: {self.gyroscope_handler.get_latest_result()}" )
             start_time = time.time()

@@ -9,8 +9,8 @@ class MotorController:
         self.motor2 = hw.motor2
         self.motor3 = hw.motor3
         self.gyroscope_handler = hw.gyroscope_handler
-        self.speed_up = 40
-        self.speed_down = 20 
+        self.speed_up = 80
+        self.speed_down = 60 
 
     def __adjust_motors(self, direction):
         x_angle, y_angle = self.gyroscope_handler.get_average()

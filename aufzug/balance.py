@@ -6,13 +6,12 @@ from hardware import Hardware
 from gyroscope_handler import GyroscopeHandler
 
 hw = Hardware()
-gh = GyroscopeHandler(hw.gyroscope)
-gh.start()
+gh = hw.gyroscope_handler
 greifer = Greifer(hw)
 
 # up = positive, down = negative
 target_speed = -10
-has_weight = True
+has_weight = False
 even_max = 1
 
 if has_weight:
