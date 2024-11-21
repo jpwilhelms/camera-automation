@@ -3,6 +3,7 @@ import board
 import busio
 
 from adafruit_pca9685 import PCA9685
+from gyroscope_handler import GyroscopeHandler
 from stopper import Stopper
 from motor import Motor
 from gyroscope import Gyroscope
@@ -17,7 +18,8 @@ class Hardware:
         self.motor1 = Motor( self.pca41, 0, 1, "1" )
         self.motor2 = Motor( self.pca41, 2, 3, "2" )
         self.motor3 = Motor( self.pca41, 8, 9, "3" )
-        self.gyroscope = Gyroscope()
+        self.gyroscope_handler = GyroscopeHandler( Gyroscope() )
+        self.gyroscope_handler.start()
 
         self.pca40 = PCA9685(i2c, address=0x40)
         self.pca40.frequency = 50
@@ -40,6 +42,7 @@ class Hardware:
         self.motor1.stop()
         self.motor2.stop()
         self.motor3.stop()
+        self.gyroscope_handler.stop()
         self.pca40.deinit()
         self.pca41.deinit()
 

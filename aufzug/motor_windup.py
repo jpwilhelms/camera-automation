@@ -3,49 +3,33 @@ from hardware import Hardware
 from gyroscope_handler import GyroscopeHandler
 
 hw = Hardware()
-gh = GyroscopeHandler(hw.gyroscope)
-gh.start()
+gh = hw.gyroscope_handler
 
 # up = positive, down = negative
-speed = 40
+speed = 10
 trigger_angle = 1
+trigger_angle_even = 0.2
 hw.motor1.forward()
 hw.motor2.forward()
 hw.motor3.forward()
 
-input("Bereit für Motor1?")
-time.sleep(1)
-hw.motor1.set_speed(speed)
+def windup_motor( motor, number ):
+    input(f"Bereit für Motor{number}?")
+    time.sleep(1)
+    motor.set_speed(speed)
+    
+    while gh.is_flat(trigger_angle):
+        time.sleep(0.01)
 
-while True:
-    error = gh.get_average()
-    if error[0] < -trigger_angle:
-        hw.motor1.stop()
-        break
-    time.sleep(0.01)
+    motor.stop()
+    motor.backward()
+    motor.set_speed(speed)
 
-input("Bereit für Motor3?")
-time.sleep(1)
-hw.motor3.set_speed(speed)
+    while not gh.is_flat(trigger_angle_even):
+        time.sleep(0.01)
 
-while True:
-    error = gh.get_average()
-    if error[0] > trigger_angle:
-        hw.motor3.stop()
-        break
-    time.sleep(0.01)
+    motor.stop()
 
-input("Bereit für Motor2?")
-time.sleep(1)
-hw.motor2.set_speed(speed)
-
-while True:
-    error = gh.get_average()
-    if error[0] < -trigger_angle:
-        hw.motor2.stop()
-        break
-    time.sleep(0.01)
-
-#-1
-#+1
-#+1
+windup_motor( hw.motor1, 1 )
+windup_motor( hw.motor2, 2 )
+windup_motor( hw.motor3, 3 )

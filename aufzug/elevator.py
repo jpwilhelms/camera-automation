@@ -3,30 +3,24 @@ import time
 import sys
 import random
 
-from gyroscope import Gyroscope
-from pidcontroller import PIDController
+from hardware import Hardware
 from motorcontroller import MotorController
+from pidcontroller import PIDController
 from stopper import Stopper
 from greifer import Greifer
 
 class Elevator:
-    def __init__(self):
-        self.gyroscope = Gyroscope()
-        self.gripper = Greifer()
-        kp = 30
-        ki = 2
-        kd = 1 
+    def __init__(self, hw:Hardware):
+        self.gyroscope_handler = hw.gyroscope_handler
+        self.gripper = Greifer(hw)
         self.flatMax = 0.25
         self.flatErrorMax = 0.4
         self.shakeSeconds = 0.8 
 
-        self.pid_x = PIDController(K_p=kp, K_i=ki, K_d=kd)
-        self.pid_y = PIDController(K_p=kp, K_i=ki, K_d=kd)
-
-        self.controller = MotorController(self.gyroscope, self.pid_x, self.pid_y)
-        self.stopperTop = Stopper(board.D5)
-        self.stopperDown1 = Stopper(board.D6)
-        self.stopperDown2 = Stopper(board.D10)
+        self.controller = MotorController(hw)
+        self.stopperTop = hw.stopperTop
+        self.stopperDown1 = hw.stopperDown1
+        self.stopperDown2 = hw.stopperDown2
 
     def stop(self):
         self.controller.stop_motors()
@@ -79,11 +73,10 @@ class Elevator:
             
             if self.stopperDown():
                 time.sleep( 0.5 )
-                if self.gyroscope.isFlat( self.flatMax ):
+                if self.gyroscope_handler.is_flat( self.flatMax ):
                     break
 
-            print( f"not landed: {self.gyroscope.getLatestResult()}" )
-            self._resetPids()
+            print( f"not landed: {self.gyroscope_handler.get_latest_result()}" )
             start_time = time.time()
 
             while time.time() - start_time < self.shakeSeconds:
@@ -93,16 +86,12 @@ class Elevator:
             self.controller.stop_motors()
             time.sleep(random.uniform(0, 4))
 
-    def _resetPids(self):
-        self.pid_x.reset()
-        self.pid_y.reset()
-
     def _stopperDownOrUneven(self):
-        return self.stopperDown() or not self.gyroscope.isFlat( self.flatErrorMax )
+        return self.stopperDown() or not self.gyroscope_handler.is_flat( self.flatErrorMax )
 
     def _landed(self):
         for i in range( 5 ):
-            if not (self.stopperDown() and self.gyroscope.isFlat( self.flatMax )):
+            if not (self.stopperDown() and self.gyroscope_handler.is_flat( self.flatMax )):
                 return False
         return True
 
@@ -112,7 +101,7 @@ class Elevator:
             return
 
         while not self._landed():
-            print( f"not landed: {self.gyroscope.getLatestResult()}" )
+            print( f"not landed: {self.gyroscope_handler.get_latest_result()}" )
             start_time = time.time()
 
             while time.time() - start_time < self.shakeSeconds:
@@ -143,9 +132,8 @@ class Elevator:
         return True
 
 if __name__ == "__main__":
-    elevator = Elevator()
-
     if len(sys.argv) > 1:
+        elevator = Elevator(Hardware())
         action = sys.argv[1]
         try:
             if action == "stop":
@@ -158,7 +146,7 @@ if __name__ == "__main__":
                 elevator.up()
             elif action == "down":
                 elevator.down()
-                print( f"landed: {elevator.gyroscope.getLatestResult()}" )
+                print( f"landed: {elevator.gyroscope_handler.get_latest_result()}" )
             elif action == "shake":
                 elevator.shake()
             else:
